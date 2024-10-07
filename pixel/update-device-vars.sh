@@ -18,18 +18,24 @@
 # use bash strict mode
 set -euo pipefail
 
-
 ### TRAPS ###
 
 # trap signals for clean exit
-trap 'rm -rf ${tmp_dir} && exit $?' EXIT
+trap 'rm -rf "${tmp_dir}" && exit $?' EXIT
 trap 'error_m interrupted!' SIGINT
 
 ### CONSTANTS ###
-readonly script_path="$(cd "$(dirname "$0")";pwd -P)"
+readonly script_path="$(cd "$(dirname "$0")"; pwd -P)"
 readonly vars_path="${script_path}/../../../vendor/lineage/vars"
+readonly home_work_dir="$HOME/work/pixel"
 
-readonly tmp_dir="${TMPDIR:-/tmp}/pixel"
+# Set TMPDIR to a directory in home to avoid /tmp
+export TMPDIR="$HOME/work/tmp"
+mkdir -p "$TMPDIR"
+
+# Set custom temporary directory for this script
+readonly tmp_dir="${TMPDIR}/update-vars"
+mkdir -p "${tmp_dir}"
 
 source "${vars_path}/pixels"
 source "${vars_path}/common"
@@ -38,8 +44,6 @@ source "${vars_path}/common"
 # TODO
 
 ### FUNCTIONS ###
-
-
 
 # error message
 # ARG1: error message for STDERR
@@ -55,7 +59,9 @@ help_message() {
 }
 
 main() {
+  # Create the temporary directory
   mkdir -p "${tmp_dir}"
+  
   if [[ $# -ne 0 ]]; then
     local ds="${@}"
   else
@@ -64,15 +70,25 @@ main() {
 
   for d in ${ds}; do
     (
+      # Create a temporary file within the custom TMPDIR
       local tmp=$(mktemp "${tmp_dir}/${d}.XXXXXXXXXX")
       local dv="${vars_path}/${d}"
+      
+      # Source the device variables
       source "${dv}"
-      ${script_path}/get-new-device-vars.py -b "${build_id}" -d "${d}" -t ${aosp_tag_match}> "${tmp}"
+      
+      # Run the Python script and write to the temp file
+      ${script_path}/get-new-device-vars.py -b "${build_id}" -d "${d}" -t ${aosp_tag_match} > "${tmp}"
+      
+      # Source the new variables from the temp file
       source "${tmp}"
+      
+      # Update variables if there are changes
       if [[ "${new_aosp_tag}" != "${aosp_tag}" ]]; then
         sed -i "/ prev_aosp_tag=/c\readonly prev_aosp_tag=\"$aosp_tag\"" "${dv}"
         sed -i "/ aosp_tag=/c\readonly aosp_tag=\"$new_aosp_tag\"" "${dv}"
       fi
+      
       sed -i "/ build_number=/c\readonly build_number=\"$new_build_number\"" "${dv}"
       sed -i "/ image_url=/c\readonly image_url=\"$new_image_url\"" "${dv}"
       sed -i "/ image_sha256=/c\readonly image_sha256=\"$new_image_sha256\"" "${dv}"
@@ -88,6 +104,3 @@ main() {
 ### RUN PROGRAM ###
 
 main "${@}"
-
-
-##

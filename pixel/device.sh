@@ -12,7 +12,6 @@
 #
 ##############################################################################
 
-
 ### SET ###
 
 # use bash strict mode
@@ -29,7 +28,15 @@ readonly script_path="$(cd "$(dirname "$0")";pwd -P)"
 readonly vars_path="${script_path}/../../../vendor/lineage/vars"
 readonly top="${script_path}/../../.."
 
-readonly work_dir="${WORK_DIR:-/tmp/pixel}"
+# Set TMPDIR to a folder in your home directory to avoid using /tmp
+export TMPDIR="$HOME/work/tmp"
+mkdir -p "$TMPDIR"
+
+# Set WORK_DIR to a folder in your home directory, fallback to ~/work/pixel if not provided
+readonly home_work_dir="$HOME/work/pixel"
+mkdir -p "$home_work_dir"
+
+readonly work_dir="${WORK_DIR:-$home_work_dir}"
 
 source "${vars_path}/pixels"
 source "${vars_path}/common"
@@ -44,11 +51,22 @@ device() {
   source "${vars_path}/${device}"
   local factory_dir="${work_dir}/${device}/${build_id}/factory/${device}-${build_id,,}"
 
-  "${script_path}/download.sh" "${device}"
-  "${script_path}/extract-factory-image.sh" "${device}"
+  # Ensure all downloaded files and extraction happens within $work_dir
+  "${script_path}/download.sh" "${device}"  # Check download.sh for /tmp usage
+  "${script_path}/extract-factory-image.sh" "${device}"  # Check extract-factory-image.sh for /tmp usage
 
   pushd "${top}"
-  device/google/${device}/extract-files.sh "${factory_dir}"
+  
+  # Adjust path to accommodate devices that may be in subdirectories like caimito/komodo
+  if [[ "$device" == "komodo" ]]; then
+    device_path="device/google/caimito/komodo/extract-files.sh"
+  else
+    device_path="device/google/${device}/extract-files.sh"
+  fi
+
+  # Use the correct path for the extract-files.sh script
+  "${device_path}" "${factory_dir}"
+  
   popd
 
   if [[ "$os_branch" == "lineage-19.1" || "$os_branch" == "lineage-20.0" ]]; then
@@ -80,6 +98,3 @@ main() {
 ### RUN PROGRAM ###
 
 main "${@}"
-
-
-##

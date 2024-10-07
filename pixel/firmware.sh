@@ -33,7 +33,7 @@ readonly top="${script_path}/../../.."
 readonly fbpacktool="${top}/lineage/scripts/fbpacktool/fbpacktool.py"
 readonly extract_ota_py="${top}/tools/extract-utils/extract_ota.py"
 
-readonly work_dir="${WORK_DIR:-/tmp/pixel}"
+readonly home_work_dir="$HOME/work/pixel"
 
 source "${vars_path}/pixels"
 
