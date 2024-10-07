@@ -47,4 +47,4 @@ See `../aosp-merger/README.md` for more
 
 Relevant cross-script variables:
 
-`WORK_DIR` - Tell the scripts where to save factory images, defaults to `/tmp/pixel`. e.g. `export WORK_DIR=/mnt/android/stock/`
+home_work_dir="$HOME/work/pixel" - Tell the scripts where to save factory images, defaults to home_work_dir="$HOME/work/pixel".
