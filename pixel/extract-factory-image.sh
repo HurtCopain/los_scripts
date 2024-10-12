@@ -82,9 +82,9 @@ extract_factory_image() {
   }
 
   # Extract inner image ZIP
-  pushd "${device}-${build_id,,}" > /dev/null
-  unzip -o "image-${device}-${build_id,,}.zip" || {
-    error_m "Failed to unzip image-${device}-${build_id,,}.zip"
+  pushd "${device}_beta-${build_id,,}" > /dev/null
+  unzip -o "image-${device}_beta-${build_id,,}.zip" || {
+    error_m "Failed to unzip image-${device}_beta-${build_id,,}.zip"
     exit 1
   }
   popd > /dev/null

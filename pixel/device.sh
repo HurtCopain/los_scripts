@@ -49,7 +49,7 @@ source "${vars_path}/common"
 device() {
   local device="${1}"
   source "${vars_path}/${device}"
-  local factory_dir="${work_dir}/${device}/${build_id}/factory/${device}-${build_id,,}"
+  local factory_dir="${work_dir}/${device}/${build_id}/factory/${device}_beta-${build_id,,}"
 
   # Ensure all downloaded files and extraction happens within $work_dir
   "${script_path}/download.sh" "${device}"  # Check download.sh for /tmp usage
